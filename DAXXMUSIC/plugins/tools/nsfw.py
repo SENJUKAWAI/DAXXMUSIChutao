@@ -1,105 +1,140 @@
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from DAXXMUSIC import app
+from DAXXMUSIC import app  # Ensure this import is correct for your project
 
-
+# URL for NSFW content
 url_nsfw = "https://api.waifu.pics/nsfw/"
 
+# Define your bot client (replace "your_bot" with your bot's name)
+client = Client("hutao")
 
-@register(pattern="addnsfw")
-@logging
-async def add_nsfw(event):
-    if not await is_admin(event, event.sender_id):
-        return await event.reply(strings.NOT_ADMIN)
 
-    is_nsfw = await is_nsfw_on(event.chat_id)
+# Check if the user is an admin (you need to define this function)
+async def is_admin(chat_id, user_id):
+    # Implement your admin check here
+    return True
+
+
+# Check if NSFW is enabled for the chat
+async def is_nsfw_on(chat_id):
+    # Implement the logic to check if NSFW is enabled for the chat
+    return True
+
+
+# Enable NSFW mode
+async def nsfw_on(chat_id):
+    # Implement the logic to enable NSFW mode for the chat
+    pass
+
+
+# Disable NSFW mode
+async def nsfw_off(chat_id):
+    # Implement the logic to disable NSFW mode for the chat
+    pass
+
+
+# Command to add NSFW mode
+@client.on_message(filters.command("addnsfw"))
+async def add_nsfw(client, message: Message):
+    if not await is_admin(message.chat.id, message.from_user.id):
+        return await message.reply("You are not an admin.")
+
+    is_nsfw = await is_nsfw_on(message.chat.id)
     if not is_nsfw:
-        await nsfw_on(event.chat_id)
-        await event.reply("Activated NSFW Mode!")
-        return "NSFW_ACTIVE", None, None
+        await nsfw_on(message.chat.id)
+        await message.reply("Activated NSFW Mode!")
     else:
-        return await event.reply("NSFW Mode is already Activated for this chat!")
+        await message.reply("NSFW Mode is already activated for this chat!")
 
 
-@register(pattern="rmnsfw")
-@logging
-async def rem_nsfw(event):
-    if not await is_admin(event, event.sender_id):
-        return await event.reply(strings.NOT_ADMIN)
+# Command to remove NSFW mode
+@client.on_message(filters.command("rmnsfw"))
+async def rem_nsfw(client, message: Message):
+    if not await is_admin(message.chat.id, message.from_user.id):
+        return await message.reply("You are not an admin.")
 
-    is_nsfw = await is_nsfw_on(event.chat_id)
-    if not is_nsfw:
-        return await event.reply("NSFW Mode is already Deactivated")
+    is_nsfw = await is_nsfw_on(message.chat.id)
+    if is_nsfw:
+        await nsfw_off(message.chat.id)
+        await message.reply("Rolled Back to SFW Mode!")
     else:
-        await nsfw_off(event.chat_id)
-        await event.reply("Rolled Back to SFW Mode!")
-        return "NSFW_DEACTIVE", None, None
+        await message.reply("NSFW Mode is already deactivated.")
 
 
-@register(pattern="blowjob|bj")
-async def blowjob(event):
-    if event.is_group:
-        is_nsfw = await is_nsfw_on(event.chat_id)
+# Command to send blowjob NSFW content
+@client.on_message(filters.command("blowjob"))
+async def blowjob(client, message: Message):
+    if message.chat.type in ["group", "supergroup"]:
+        is_nsfw = await is_nsfw_on(message.chat.id)
         if not is_nsfw:
-            return await event.reply("NSFW is not activated")
+            return await message.reply("NSFW is not activated in this chat.")
+
     url = f"{url_nsfw}blowjob"
-    result = get(url).json()
-    img = result["url"]
-    if event.reply_to_msg_id:
-        await meow.send_file(event.chat_id, img, reply_to=event.reply_to_msg_id)
-    await meow.send_file(event.chat_id, img)
+    response = requests.get(url).json()
+    img_url = response["url"]
+
+    await client.send_photo(message.chat.id, img_url, reply_to_message_id=message.message_id)
 
 
-@register(pattern="trap")
-async def trap(event):
-    if event.is_group:
-        is_nsfw = await is_nsfw_on(event.chat_id)
+# Command to send trap NSFW content
+@client.on_message(filters.command("trap"))
+async def trap(client, message: Message):
+    if message.chat.type in ["group", "supergroup"]:
+        is_nsfw = await is_nsfw_on(message.chat.id)
         if not is_nsfw:
-            return await event.reply("NSFW is not activated")
+            return await message.reply("NSFW is not activated in this chat.")
+
     url = f"{url_nsfw}trap"
-    result = get(url).json()
-    img = result["url"]
-    if event.reply_to_msg_id:
-        await meow.send_file(event.chat_id, img, reply_to=event.reply_to_msg_id)
-    await meow.send_file(event.chat_id, img)
+    response = requests.get(url).json()
+    img_url = response["url"]
+
+    await client.send_photo(message.chat.id, img_url, reply_to_message_id=message.message_id)
 
 
-@register(pattern="(nsfwwaifu|nwaifu)")
-async def nsfwwaifu(event):
-    if event.is_group:
-        is_nsfw = await is_nsfw_on(event.chat_id)
+# Command to send NSFW waifu content
+@client.on_message(filters.command(["nsfwwaifu", "nwaifu"]))
+async def nsfwwaifu(client, message: Message):
+    if message.chat.type in ["group", "supergroup"]:
+        is_nsfw = await is_nsfw_on(message.chat.id)
         if not is_nsfw:
-            return await event.reply("NSFW is not activated")
+            return await message.reply("NSFW is not activated in this chat.")
+
     url = f"{url_nsfw}waifu"
-    result = get(url).json()
-    img = result["url"]
-    if event.reply_to_msg_id:
-        await meow.send_file(event.chat_id, img, reply_to=event.reply_to_msg_id)
-    await meow.send_file(event.chat_id, img)
+    response = requests.get(url).json()
+    img_url = response["url"]
+
+    await client.send_photo(message.chat.id, img_url, reply_to_message_id=message.message_id)
 
 
-@register(pattern="(nsfwneko|nneko)")
-async def nsfwneko(event):
-    if event.is_group:
-        is_nsfw = await is_nsfw_on(event.chat_id)
+# Command to send NSFW neko content
+@client.on_message(filters.command(["nsfwneko", "nneko"]))
+async def nsfwneko(client, message: Message):
+    if message.chat.type in ["group", "supergroup"]:
+        is_nsfw = await is_nsfw_on(message.chat.id)
         if not is_nsfw:
-            return await event.reply("NSFW is not activated")
+            return await message.reply("NSFW is not activated in this chat.")
+
     url = f"{url_nsfw}neko"
-    result = get(url).json()
-    img = result["url"]
-    if event.reply_to_msg_id:
-        await meow.send_file(event.chat_id, img, reply_to=event.reply_to_msg_id)
-    await meow.send_file(event.chat_id, img)
+    response = requests.get(url).json()
+    img_url = response["url"]
+
+    await client.send_photo(message.chat.id, img_url, reply_to_message_id=message.message_id)
 
 
-@register(pattern="lewd")
-async def lewd(event):
-    if event.is_group:
-        is_nsfw = await is_nsfw_on(event.chat_id)
+# Command to send lewd content
+@client.on_message(filters.command("lewd"))
+async def lewd(client, message: Message):
+    if message.chat.type in ["group", "supergroup"]:
+        is_nsfw = await is_nsfw_on(message.chat.id)
         if not is_nsfw:
-            return await event.reply("NSFW is not activated")
-    r = get("https://waifu-api.vercel.app/items/1").json()
-    if event.reply_to_msg_id:
-        await meow.send_file(event.chat_id, r, reply_to=event.reply_to_msg_id)
-    await meow.send_file(event.chat_id, r)
+            return await message.reply("NSFW is not activated in this chat.")
+
+    response = requests.get("https://waifu-api.vercel.app/items/1").json()
+    img_url = response["url"]
+
+    await client.send_photo(message.chat.id, img_url, reply_to_message_id=message.message_id)
+
+
+# Start the bot
+client.run()
